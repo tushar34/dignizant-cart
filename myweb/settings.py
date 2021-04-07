@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'zos^_s+j#x8q&=$+_=b@x=ihy!w(aqd0gljbo)-)&s#v_!n!n8'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = ['https://dignizant-cart.herokuapp.com' , 'dignizant-cart.herokuapp.com', '127.0.0.1']
 
@@ -48,13 +48,14 @@ INSTALLED_APPS = [
 SITE_ID = 1
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+
 ]
 
 ROOT_URLCONF = 'myweb.urls'
@@ -131,8 +132,9 @@ USE_TZ = True
 
 import os
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [os.path.join(BASE_DIR, 'statics')]
-STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
+STATIC_ROOT = os.path.join(BASE_DIR, 'statics')
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media_root')
 
@@ -143,3 +145,4 @@ ACCOUNT_EMAIL_VERIFICATION = "none"
 
 STRIPE_PUBLIC_KEY = "pk_test_51Ibk4KSGafLm2PSq84YA7Kn99WYEANFwxWuLrCJ5R4tZogmUmsfIQ9DV5oATk8MNs3b2gPN2LqrI36LqNYFuEnvf00n84GmYNG"
 STRIPE_SECRET_KEY = "sk_test_51Ibk4KSGafLm2PSq913WdziBK9Xiag7aADHkoiOjSUUblysgCH1e6q4fr76e09u4rRpogYRjJZezjn7xCmUgTEOs00wcgcrNRb"
+#STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
