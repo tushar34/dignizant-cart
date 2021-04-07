@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+  <main>
+    <div class="container">
+        <div class="table-responsive">
+            <table class="table">
+                <tr>
+                    <th>S.No</th>
+                    <th>Item Name</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total Item Price</th>
+                </tr>
+                {% for order_item in object.items.all %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ order_item.item.title}}</td>
+                    <td>
+                        {% if order_item.item.discount_price%}
+                            RS.{{order_item.item.discount_price}}
+                        {% else %}
+                             RS.{{order_item.item.price}}
+                        {% endif%}
+                    </td>
+                    <td>
+                        <a href=" {% url 'ap1:remove-single-item-from-card' order_item.item.slug  %}"><i  class="fas fa-chevron-left mr-2"></i></a>
+                        {{order_item.quantity}}
+                       <a href=" {% url 'ap1:add-to-card' order_item.item.slug  %}"><i class="fas fa-chevron-right ml-2"></i></a>
+                    </td>
+                    <td>
+                        {% if order_item.item.discount_price %}
+                            RS.{{ order_item.get_total_discount_item_price }}
+                        {% else %}
+                             RS.{{ order_item.get_total_item_price }}
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{% url 'ap1:remove-from-card' order_item.item.slug  %}">
+                            <i class="fas fa-trash-alt "></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% if object.coupon %}
+                 <tr>
+                    <td colspan="4"><b>Coupon Price</b></td>
+                    <td><b>-RS.{{object.coupon.amount}}</b></td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td colspan="4"><b>Total Order Price</b></td>
+                    <td><b>RS.{{object.get_total}}</b></td>
+                </tr>
+
+                <tr>
+                    <td colspan="5">
+                        <a  class='btn btn-warning float-right ml-3' href="/checkout/">Proceed to Checkout</a>
+                        <a  class='btn btn-primary float-right ml-3'  href="/">Continue Shopping</a>
+                        <a  class='btn btn-primary float-right'  href="/request-refund/">Apply to Refund</a>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+  </main>
+
+{% endblock content %}
+
+
