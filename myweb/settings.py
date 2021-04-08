@@ -25,7 +25,7 @@ SECRET_KEY = 'zos^_s+j#x8q&=$+_=b@x=ihy!w(aqd0gljbo)-)&s#v_!n!n8'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['https://dignizant-cart.herokuapp.com' , 'dignizant-cart.herokuapp.com', '127.0.0.1']
+ALLOWED_HOSTS = ["tusharparadva.pythonanywhere.com",'https://dignizant-cart.herokuapp.com' , 'dignizant-cart.herokuapp.com', '127.0.0.1']
 
 
 # Application definition
