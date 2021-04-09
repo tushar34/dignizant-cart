@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.shortcuts import render,get_object_or_404,redirect
 from django.utils import timezone
 from urllib3 import HTTPResponse
-
+from django.contrib.auth.decorators import login_required
 from .forms import Checkoutform,CouponForm,RefundForm
 from .models import *
 from django.views.generic import DetailView,View
@@ -13,6 +13,7 @@ import stripe
 from django.conf import settings
 import random
 import string
+
 
 #stripe.api_key = 'sk_test_51Ibk4KSGafLm2PSq913WdziBK9Xiag7aADHkoiOjSUUblysgCH1e6q4fr76e09u4rRpogYRjJZezjn7xCmUgTEOs00wcgcrNRb'
 
@@ -34,14 +35,14 @@ class Checkoutview(View):
             form = Checkoutform()
             context = {
                 'form': form,
-                'couponform' : CouponForm(),
+                'couponform': CouponForm(),
                 'order': order,
-            'DISPLAY_COUPON_FORM': True
+                'DISPLAY_COUPON_FORM': True
             }
             return render(self.request, "checkout.html", context)
         except ObjectDoesNotExist:
             messages.success(self.request, "you do not have an active order")
-            return redirect("ap1:cheakout")
+            return redirect("ap1:checkout")
 
     def post(self, *args, **kwargs):
         form = Checkoutform(self.request.POST or None)
@@ -81,7 +82,6 @@ class ItemDetailView(DetailView):
     model = Item
     template_name = "products.html"
 
-
 class OrderSummaryView(View):
     def get(self,*args,**kwargs):
         try:
@@ -94,13 +94,13 @@ class OrderSummaryView(View):
             messages.info(self.request, "You do not have an active order")
             return redirect("ap1:home")
 
+@login_required
 def add_to_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
-    order_item, created = Orderitem.objects.get_or_create(
-        item=item,
+    order_item, created = Orderitem.objects.get_or_create(item=item,
         user=request.user,
-        ordered=False
-    )
+        ordered=False)
+
     order_qs = Order.objects.filter(user=request.user, ordered=False)
     if order_qs.exists():
         order = order_qs[0]
@@ -122,6 +122,7 @@ def add_to_cart(request, slug):
         messages.info(request, "This item was added to your cart.")
         return redirect("ap1:product", slug=slug)
 
+@login_required
 def remove_from_cart(request, slug):
     item = get_object_or_404(Item, slug=slug)
     order_qs = Order.objects.filter(
@@ -132,13 +133,20 @@ def remove_from_cart(request, slug):
         order = order_qs[0]
         # check if the order item is in the order
         if order.items.filter(item__slug=item.slug).exists():
+
             order_item = Orderitem.objects.filter(
                 item=item,
                 user=request.user,
-                ordered=False
+                ordered=False,
             )[0]
 
+
+            #print(order.coupon)
+            order.coupon = None
+            order.save()
+            #print(order.coupon)
             order.items.remove(order_item)
+
             messages.info(request, "This item was removed from your cart.")
             return redirect("ap1:OrderSummaryView")
         else:
@@ -181,6 +189,7 @@ def remove_single_item_from_cart(request, slug):
 
 
 class PaymentView(View):
+
     def get(self, *args, **kwargs):
         order = Order.objects.get(user=self.request.user, ordered=False)
         if order.billing_address:
@@ -268,27 +277,40 @@ class PaymentView(View):
             return redirect("/")
 
 def get_coupon(request,code):
-    try:
-        coupon = Coupon.objects.get(code=code)
+    # if not coupon:
+    #     messages.info(request, "This coupon does not avalible")
+    #     return redirect("ap1:checkout")
+    # else:
+    #     return coupon
+    # else:
+    #     messages.info(request, "This coupon does not avalible")
+    #     return redirect("ap1:checkout")
+    coupon = Coupon.objects.get(code=code)
+    if coupon:
         return coupon
-    except ObjectDoesNotExist:
-        messages.success(request, "this coupon does not exist")
-        return redirect("ap1:cheakout")
-class  add_coupon(View):
-    def post(self,*args,**kwargs):
+    else:
+        messages.success(request,"error")
+        return redirect("ap1:checkout")
+
+
+class add_coupon(View):
+    def post(self, *args, **kwargs):
         form = CouponForm(self.request.POST or None)
         if form.is_valid():
             try:
                 code = form.cleaned_data.get('code')
-                order = Order.objects.get(user=self.request.user,ordered=False)
-                order.coupon = get_coupon(self.request,code)
-                order.save()
-                messages.success(self.request, "Successfully added coupon")
-                return redirect("ap1:checkout")
+                order = Order.objects.get(user=self.request.user, ordered=False)
+                if order.items.exists():
+                    order.coupon = get_coupon(self.request, code)
+                    order.save()
+                    messages.success(self.request, "add coupon")
+                    return redirect("ap1:checkout")
+                else:
+                    messages.success(self.request, "your cart is empty")
+                    return redirect("ap1:checkout")
             except ObjectDoesNotExist:
-                messages.info(self.request, "you do not have an active order")
+                messages.success(self.request, "This coupon does not exist")
                 return redirect("ap1:checkout")
-
 class RequestRefundView(View):
     def get(self, *args, **kwargs):
         form = RefundForm()

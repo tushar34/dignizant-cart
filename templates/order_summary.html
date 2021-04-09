@@ -43,12 +43,20 @@
                     </td>
                 </tr>
                 {% endfor %}
+
+                {% for order_item in object.items.all %}
+                {% endfor %}
+                {% if order_item != "" %}
+
                 {% if object.coupon %}
+
                  <tr>
                     <td colspan="4"><b>Coupon Price</b></td>
                     <td><b>-RS.{{object.coupon.amount}}</b></td>
                 </tr>
                 {% endif %}
+                {% endif %}
+
                 <tr>
                     <td colspan="4"><b>Total Order Price</b></td>
                     <td><b>RS.{{object.get_total}}</b></td>
